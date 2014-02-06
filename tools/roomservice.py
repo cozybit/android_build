@@ -70,15 +70,18 @@ def add_auth(githubreq):
         githubreq.add_header("Authorization","Basic %s" % githubauth)
 
 page = 1
-while not depsonly:
-    githubreq = urllib.request.Request("https://api.github.com/users/CyanogenMod/repos?per_page=200&page=%d" % page)
-    add_auth(githubreq)
-    result = json.loads(urllib.request.urlopen(githubreq).read().decode())
-    if len(result) == 0:
-        break
-    for res in result:
-        repositories.append(res)
-    page = page + 1
+teams = ["cozybit", "CyanogenMod"]
+for team in teams:
+    while not depsonly:
+        url = "https://api.github.com/users/%s/repos?per_page=200&page=%d" % (team, page,)
+        githubreq = urllib.request.Request(url)
+        add_auth(githubreq)
+        result = json.loads(urllib.request.urlopen(githubreq).read().decode())
+        if len(result) == 0:
+            break
+        for res in result:
+            repositories.append(res)
+        page = page + 1
 
 local_manifests = r'.repo/local_manifests'
 if not os.path.exists(local_manifests): os.makedirs(local_manifests)
@@ -239,9 +242,9 @@ else:
         repo_name = repository['name']
         if repo_name.startswith("android_device_") and repo_name.endswith("_" + device):
             print("Found repository: %s" % repository['name'])
-            
+
             manufacturer = repo_name.replace("android_device_", "").replace("_" + device, "")
-            
+
             default_revision = get_default_revision()
             print("Default revision: %s" % default_revision)
             print("Checking branch info")
@@ -254,10 +257,10 @@ else:
                 githubreq = urllib.request.Request(repository['tags_url'].replace('{/tag}', ''))
                 add_auth(githubreq)
                 result.extend (json.loads(urllib.request.urlopen(githubreq).read().decode()))
-            
+
             repo_path = "device/%s/%s" % (manufacturer, device)
             adding = {'repository':repo_name,'target_path':repo_path}
-            
+
             fallback_branch = None
             if not has_branch(result, default_revision):
                 if os.getenv('ROOMSERVICE_BRANCHES'):
