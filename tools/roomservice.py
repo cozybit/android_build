@@ -76,7 +76,8 @@ for team in teams:
         url = "https://api.github.com/users/%s/repos?per_page=200&page=%d" % (team, page,)
         githubreq = urllib.request.Request(url)
         add_auth(githubreq)
-        result = json.loads(urllib.request.urlopen(githubreq).read().decode())
+        data = urllib.request.urlopen(githubreq).read()
+        result = json.loads(data.decode('utf-8'))
         if len(result) == 0:
             break
         for res in result:
@@ -176,9 +177,15 @@ def add_to_manifest(repositories, fallback_branch = None):
             print('CyanogenMod/%s already exists' % (repo_name))
             continue
 
-        print('Adding dependency: CyanogenMod/%s -> %s' % (repo_name, repo_target))
-        project = ElementTree.Element("project", attrib = { "path": repo_target,
-            "remote": "github", "name": "CyanogenMod/%s" % repo_name })
+        if 'full_name' in repository:
+            full_name = repository['full_name']
+            print('Adding dependency: %s -> %s' % (full_name, repo_target))
+            project = ElementTree.Element("project", attrib = { "path": repo_target,
+                "remote": "github", "name" : full_name })
+        else:
+            print('Adding dependency: CyanogenMod/%s -> %s' % (repo_name, repo_target))
+            project = ElementTree.Element("project", attrib = { "path": repo_target,
+                "remote": "github", "name": "CyanogenMod/%s" % repo_name })
 
         if 'branch' in repository:
             project.set('revision',repository['branch'])
@@ -240,6 +247,8 @@ if depsonly:
 else:
     for repository in repositories:
         repo_name = repository['name']
+        full_name = repository['full_name']
+        print(full_name)
         if repo_name.startswith("android_device_") and repo_name.endswith("_" + device):
             print("Found repository: %s" % repository['name'])
 
@@ -259,7 +268,9 @@ else:
                 result.extend (json.loads(urllib.request.urlopen(githubreq).read().decode()))
 
             repo_path = "device/%s/%s" % (manufacturer, device)
-            adding = {'repository':repo_name,'target_path':repo_path}
+            adding = {'repository'  : repo_name,
+                      'target_path' : repo_path,
+                      'full_name'   : full_name }
 
             fallback_branch = None
             if not has_branch(result, default_revision):
