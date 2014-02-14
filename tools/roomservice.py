@@ -177,15 +177,20 @@ def add_to_manifest(repositories, fallback_branch = None):
             print('CyanogenMod/%s already exists' % (repo_name))
             continue
 
+        if 'remote' in repository:
+            remote_name = repository['remote']
+        else:
+            remote_name = 'github'
+
         if 'full_name' in repository:
             full_name = repository['full_name']
             print('Adding dependency: %s -> %s' % (full_name, repo_target))
             project = ElementTree.Element("project", attrib = { "path": repo_target,
-                "remote": "github", "name" : full_name })
+                "remote": remote_name, "name" : full_name })
         else:
             print('Adding dependency: CyanogenMod/%s -> %s' % (repo_name, repo_target))
             project = ElementTree.Element("project", attrib = { "path": repo_target,
-                "remote": "github", "name": "CyanogenMod/%s" % repo_name })
+                "remote": remote_name, "name": "CyanogenMod/%s" % repo_name })
 
         if 'branch' in repository:
             project.set('revision',repository['branch'])
