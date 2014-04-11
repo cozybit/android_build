@@ -234,8 +234,9 @@ def fetch_dependencies(repo_path, fallback_branch = None):
         print('Dependencies file not found, bailing out.')
 
     if len(syncable_repos) > 0:
-        print('Syncing dependencies')
-        os.system('repo sync %s' % ' '.join(syncable_repos))
+        no_repo_sync = os.environ.get('NO_REPO_SYNC')
+        if not no_repo_sync:
+            os.system('repo sync ' + no_repo_sync + ' %s' % ' '.join(syncable_repos))
 
 def has_branch(branches, revision):
     return revision in [branch['name'] for branch in branches]
@@ -298,7 +299,9 @@ else:
             add_to_manifest([adding], fallback_branch)
 
             print("Syncing repository to retrieve project.")
-            os.system('repo sync %s' % repo_path)
+            no_repo_sync = os.environ.get('NO_REPO_SYNC')
+            if not no_repo_sync:
+                os.system('repo sync ' + no_repo_sync + ' %s' % repo_path)
             print("Repository synced!")
 
             fetch_dependencies(repo_path, fallback_branch)
