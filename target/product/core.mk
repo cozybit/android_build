@@ -73,6 +73,10 @@ PRODUCT_PACKAGES += \
     telephony-msim \
     voip-common
 
+## These should be re-enabled for mesh support
+#    mesh_tool \
+#    MeshSetting
+
 # host-only dependencies
 ifeq ($(WITH_HOST_DALVIK),true)
     PRODUCT_PACKAGES += \
